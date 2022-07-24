@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  backend:
+    container_name: backend
+    build: ./backend
+    restart: always
+    ports:
+      - "8000:8000" # nginx riderect to this port
+    volumes:
+      - ./backend:/app # Valume for not restarting docker container while coding
+      - ./backend/static:/app/static # Static value
+      - ./backend/media:/app/media # Media value
+    networks:
+      - localdev
+    command: gunicorn -c gunicorn.py backend.wsgi
+
+  nginx:
+    container_name: nginx
+    restart: always
+    build: ./nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./server/static:/app/static # Static value
+      - ./server/media:/app/media # Media value
+    depends_on:
+      - frontend
+
+#  frontend:
+#    build: ./frontend
+#    restart: always
+#    container_name: frontend
+#    volumes:
+#      - ./frontend:/app
+#    networks:
+#      - localdev
+#    ports:
+#      - "8080:8080"
+#    command: npm run serve
+#    depends_on:
+#      - backend
+
+networks:
+  localdev:
