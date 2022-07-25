@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import os
+import datetime
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -36,8 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
+
     'rest_framework',
     "rest_framework.authtoken",
+    'rest_framework_jwt',
+    'rest_framework_simplejwt',
     'djoser',
 
     'v1.users.apps.UsersConfig',
@@ -144,33 +148,60 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATIC_FILESDIR = [
     os.path.join(BASE_DIR, 'staticfiles')
 ]
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        # 'rest_framework.permissions.IsAdminUser',
+        'rest_framework.permissions.AllowAny',
+    ),
+    'PAGE_SIZE': 10,
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        # 'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PAGINATION_CLASS':
+        'rest_framework_json_api.pagination.PageNumberPagination',
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DATETIME_FORMAT': "%d.%m.%Y %H:%M:%S",
+}
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_PERMISSION_CLASSES': (
-#         'rest_framework.permissions.IsAdminUser',
-#         'rest_framework.permissions.AllowAny',
-#     ),
-#     'PAGE_SIZE': 10,
-#     'DEFAULT_AUTHENTICATION_CLASSES': (
-#         # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
-#         'rest_framework.authentication.TokenAuthentication',
-#         'rest_framework.authentication.BasicAuthentication',
-#         'rest_framework.authentication.SessionAuthentication',
-#     ),
-#     'EXCEPTION_HANDLER': 'rest_framework_json_api.exceptions.exception_handler',
-#     'DEFAULT_PAGINATION_CLASS':
-#         'rest_framework_json_api.pagination.PageNumberPagination',
-#     'DEFAULT_PARSER_CLASSES': (
-#         'rest_framework_json_api.parsers.JSONParser',
-#         'rest_framework.parsers.FormParser',
-#         'rest_framework.parsers.MultiPartParser'
-#     ),
-#     'DEFAULT_RENDERER_CLASSES': (
-#         'rest_framework_json_api.renderers.JSONRenderer',
-#         'rest_framework.renderers.BrowsableAPIRenderer',
-#     ),
-#     'DEFAULT_METADATA_CLASS': 'rest_framework_json_api.metadata.JSONAPIMetadata',
-# }
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=2),
+    'JWT_ALLOW_REFRESH': True,
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7)  # default
+}
 
+DJOSER = {
+    # 'SEND_ACTIVATION_EMAIL': True,
+    # # 'SEND_CONFIRMATION_EMAIL': True,
+    # 'ACTIVATION_URL': 'auth/activate/{uid}/{token}/',
+    # 'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True,
+    # 'PASSWORD_RESET_CONFIRM_URL': 'auth/reset/confirm/{uid}/{token}/',
+    # 'TOKEN_MODEL': None
+    'SERIALIZERS': {
+        'activation': 'djoser.serializers.ActivationSerializer',
+        'password_reset': 'djoser.serializers.SendEmailResetSerializer',
+        'password_reset_confirm': 'djoser.serializers.PasswordResetConfirmSerializer',
+        'password_reset_confirm_retype': 'djoser.serializers.PasswordResetConfirmRetypeSerializer',
+        'set_password': 'djoser.serializers.SetPasswordSerializer',
+        'set_password_retype': 'djoser.serializers.SetPasswordRetypeSerializer',
+        'set_username': 'djoser.serializers.SetUsernameSerializer',
+        'set_username_retype': 'djoser.serializers.SetUsernameRetypeSerializer',
+        'username_reset': 'djoser.serializers.SendEmailResetSerializer',
+        'username_reset_confirm': 'djoser.serializers.UsernameResetConfirmSerializer',
+        'username_reset_confirm_retype': 'djoser.serializers.UsernameResetConfirmRetypeSerializer',
+        'user_create': 'djoser.serializers.UserCreateSerializer',
+        'user_create_password_retype': 'djoser.serializers.UserCreatePasswordRetypeSerializer',
+        'user_delete': 'djoser.serializers.UserDeleteSerializer',
+        'user': 'djoser.serializers.UserSerializer',
+        'current_user': 'v1.users.serializers.UserDetailSerializer',
+        'token': 'djoser.serializers.TokenSerializer',
+        'token_create': 'djoser.serializers.TokenCreateSerializer',
+    }
+}
 
+APPEND_SLASH = False
 CORS_ORIGIN_ALLOW_ALL = True
+AUTH_USER_MODEL = 'users.User'
